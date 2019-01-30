@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang='ru'>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Log</title>
+
+    <!-- Common scripts -->
+    <script src="/scripts/socket.io.js"></script>
+    <script src="/scripts/jquery-3.3.1.min.js"></script>
+    <script src="/scripts/popper.min.js"></script>
+    <script src="/scripts/bootstrap.min.js"></script>
+
+    <script src="/scripts/log.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/styles/bootstrap.min.css">
+    <link rel="stylesheet" href="/styles/style.css">
+  </head>
+  <body>
+    <header class="mb-2 bg-dark">
+      <div class="container">
+        <div class="row">
+          <div class="my-2 col-3">
+            <button onclick="window.history.back();" class="btn btn-primary">Back</button>
+          </div>
+          <div class="col-9 text-right mt-2">
+            <a href="/logout" class="btn btn-primary ml-3 float-right">Logout</a>
+            <p class="text-white h4 pt-2">Actions that the bot performed</p>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="container">
+      <!-- Log -->
+      ${mode == 'test' && sessions.length > 0 ? `<button id="clearHistory" class="btn btn-primary float-right">Clear all history</button>` : `` }
+      ${ sessions.length > 0 ? sessions.map((session) =>
+      `<p class="h4 mt-3">Session № <span class="font-weight-bold">${session.id}</span></p>
+      <p class="mb-0">Symbol: <span class="font-weight-bold">${session.balance.base.currency}${session.balance.quote.currency}</span></p>
+      <p class="mb-0">Start date: <span class="font-weight-bold">${new Date(session.startDate)}</span></p>
+      <p class="mb-0">Starting balance: <span class="font-weight-bold">${session.starting_balance.available} ${session.starting_balance.currency}</span></p>
+      <p class="mb-0">Ema period: <span class="font-weight-bold">${session.params.ema.period}</span></p>
+      <p class="mb-0">Candles offset: <span class="font-weight-bold">${session.params.trades.offset}</span></p>
+      <table class="table table-striped table-dark mb-1">
+        <thead>
+          <tr>
+            <th scope="col">Id/OrderId</th>
+            <th scope="col">Symbol</th>
+            <th scope="col">Side</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Price</th>
+            <th scope="col">Fee</th>
+            <th scope="col">Total</th>
+            <th scope="col">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+            ${ history[session.id] && history[session.id].length > 0 ? history[session.id].map((order) =>
+              `<tr>
+                <th scope="row">${order.id}/${order.orderId}</th>
+                <td>${order.symbol}</td>
+                <td>${order.side}</td>
+                <td>${order.quantity}</td>
+                <td>${order.price}</td>
+                <td>${order.fee}</td>
+                <td>${order.total}</td>
+                <td>${new Date(order.timestamp)}</td>
+              </tr>`
+            ).join('') : `<tr><td colspan="8">No one trade in this session</td></tr>`
+            }
+        </tbody>
+      </table>
+      <p class="mb-0">Status: <span class="font-weight-bold">${session.active ? 'active' : 'ended'}</span></p>
+      <p class="mb-0">End date: <span class="font-weight-bold">${typeof(session.endDate) == 'number' ? new Date(session.endDate) : session.endDate}</span></p>
+      <p class="mb-0">Ending balance: <span class="font-weight-bold">${session.balance.base.available} ${session.balance.base.currency}, ${session.balance.quote.available} ${session.balance.quote.currency}</span></p>
+
+      <p class="mb-3">Profit: ${session.profit.value != 0
+        ? `<span class="text-${session.profit.class}">${session.profit.sign} ${session.profit.value}%<span>`
+        : `<span>0%</span>`
+      }</p>
+
+      <div style="border-bottom: 3px solid #343a40;" class="mb-5"></div>`
+      ).join('') : `<p class="pt-3 h4 text-right" style="clear:both">No history</p>`
+    }
+    </div>
+    <footer>
+      <!-- Footer here -->
+    </footer>
+  </body>
+</html>

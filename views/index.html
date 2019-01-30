@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang='ru'>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Trader</title>
+
+    <!-- Common scripts -->
+    <script src="/scripts/socket.io.js"></script>
+    <script src="/scripts/jquery-3.3.1.min.js"></script>
+    <script src="/scripts/popper.min.js"></script>
+    <script src="/scripts/bootstrap.min.js"></script>
+
+    <script src="/scripts/charts/d3.v4.min.js"></script>
+    <script src="/scripts/charts/techan.min.js"></script>
+
+    <script src="/scripts/frontend.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/styles/bootstrap.min.css">
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" href="/styles/charts.css">
+  </head>
+  <body>
+    <header class="mb-2 bg-dark">
+      <div class="container">
+        <div class="row">
+          <div class="my-2 col-3">
+            <!-- <button id="btn-start" class="btn btn-primary">Start</button>
+            <button id="btn-stop" class="btn btn-primary">Stop</button> -->
+            <!-- <button id="btn-status" class="btn btn-primary">Status</button> -->
+            <a href="/log" class="btn btn-primary">Log</a>
+          </div>
+          <div class="offset-6 my-2 col-3">
+            <a href="/logout" class="btn btn-primary ml-3 float-right">Logout</a>
+            <div class="h3 text-right text-white pt-1 mb-0"><span class="h5">Trading mode:</span> ${mode}</div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="container">
+      <div class="py-3 my-3" style="border-bottom: 3px solid #343a40">
+        ${ !session ?
+        `<form class="form-inline" id="startSession" method="post">
+          <div class="form-check mb-2 mr-sm-2">
+            <label class="mr-2">Starting balance:</label>
+            <input name="starting_balance_base" required value="0" class="form-control text-right" style="width:100px" />
+            <label class="mx-2">${symbols.map((item) => item.id == symbol ? `${item.baseCurrency}` : `` ).join('')}</label>
+            <label class="mx-2">or</label>
+            <input name="starting_balance_quote" required value="0" class="form-control text-right" style="width:100px" />
+            <label class="mx-2">${symbols.map((item) => item.id == symbol ? `${item.quoteCurrency}` : `` ).join('')}</label>
+          </div>
+          <div class="form-check mb-2 mr-md-2 ml-lg-2">
+            <label class="mr-2">Start date:</label>
+            <input name="startDate" type="date" class="form-control" />
+          </div>
+          <div class="form-check mb-2 mr-md-2 ml-lg-2">
+            <label class="mr-2">End date:</label>
+            <input name="endDate" type="date" class="form-control" />
+          </div>
+          <div class="form-check mb-2 ml-sm-2">
+            <input type="submit" value="Start session" style="width:130px" class="btn btn-success" />
+          </div>
+        </form>` :
+        `<div id="stop-session-block" style="overflow: hidden">
+          <p class="h3">Current Session</p>
+          <table class="table table-sm table-bordered text-center">
+            <thead>
+              <tr>
+                <th>Session id</th>
+                <th>Start Date</th>
+                <th>Start Balance</th>
+                <th>Current Balance</th>
+                <th>Profit</th>
+                <th>End Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="vertical-align:middle" scope="row">${session.id}</td>
+                <td style="vertical-align:middle">${new Date(session.startDate)}</td>
+                <td style="vertical-align:middle">${session.starting_balance.available} ${session.starting_balance.currency}</td>
+                <td style="vertical-align:middle">
+                  ${session.balance.base.available} ${session.balance.base.currency}
+                  <br/>
+                  ${session.balance.quote.available} ${session.balance.quote.currency}
+                </td>
+                <td style="vertical-align:middle">
+                  ${session.profit.value != 0
+                    ? `<span class="text-${session.profit.class}">${session.profit.sign} ${session.profit.value}%<span>`
+                    : `<span>0%</span>`
+                  }
+                </td>
+                <td style="vertical-align:middle">${typeof(session.endDate) == 'number' ? new Date(session.endDate) : session.endDate}</td>
+              </tr>
+            </tbody>
+          </table>
+          <button id="endSession" style="width:130px" class="btn btn-success float-right">Stop session</button>
+        </div>`
+        }
+        <div class="text-right text-success mt-2">
+          <p class="m-0">
+            <strong>Total balance:</strong><br />
+            ${ mode == 'trading'
+            ? `${ balance.base && balance.quote ? `
+              <span id="currency-balance-base">${balance.base.available}</span><span> ${balance.base.currency}</span><br />
+              <span id="currency-balance-quote">${balance.quote.available}</span><span> ${balance.quote.currency}</span>
+              ` : `<span id="currency-balance">loading...</span>`}`
+            : `${ session && session.balance.base && session.balance.quote ? `
+              <span id="currency-balance-base">${session.balance.base.available}</span><span> ${session.balance.base.currency}</span><br />
+              <span id="currency-balance-quote">${session.balance.quote.available}</span><span> ${session.balance.quote.currency}</span>
+              ` : `<span id="currency-balance">loading...</span>`}`
+            }
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-12 col-sm-7 col-lg-9">
+          <form class="form-inline" id="set-options-form" method="post">
+            <!-- <div class="input-group mb-2 mr-sm-2">
+              <label class="mr-2">Time Interval:</label>
+              <select name="time_interval" class="form-control custom-select">
+                <option value="1">1 minute</option>
+                <option value="3">3 minute</option>
+                <option value="5">5 minute</option>
+                <option value="15">15 minute</option>
+                <option value="30">30 minute</option>
+                <option value="60">1 hour</option>
+                <option value="240">4 hours</option>
+                <option value="1140" selected>1 day</option>
+                <option value="10080">1 week</option>
+                <option value="month">1 month</option>
+              </select>
+            </div> -->
+            <div class="form-check mb-2 mr-sm-2">
+              <label class="mr-2">Symbols:</label>
+              <select name="symbol" class="form-control custom-select">
+                ${ symbols.map((sym) =>
+                  `<option value="${sym.id}"${sym.id == symbol ? ' selected': ''}>${sym.baseCurrency}/${sym.quoteCurrency}</option>`
+                  ).join('')
+                }
+              </select>
+            </div>
+            <div class="form-check mb-2 ml-sm-3 mr-sm-2">
+              <label class="mr-2">EMA period:</label>
+              <input name="ema_period" type="number" min="2" max="30" required value="${ema.period}" class="form-control" style="width:65px" />
+            </div>
+            <div class="form-check mb-2 mr-md-2 ml-lg-3">
+              <label class="mr-2">Timezone offset:</label>
+              <input type="range"  min="-12" max="12" step="1" value="${candlesOffset}" style="width:150px" class="form-control-range" oninput="$('#timezone_offset').val(this.value)" onchange="$('#timezone_offset').val(this.value)" />
+              <input name="timezone_offset" id="timezone_offset" class="form-control text-center ml-2" style="width:65px" type="number" min="-12" max="12" step="1" required value="${candlesOffset}" />
+            </div>
+            <div class="form-check mb-2 ml-sm-2">
+              <input type="submit" value="Apply" class="btn btn-success" />
+            </div>
+
+          </form>
+        </div>
+        <div class="col-12 col-sm-5 col-lg-3">
+          <div class="alert alert-secondary w-100 text-center" role="alert">
+            <small>Last full candle EMA:</small> <strong id="current-ema">${ ema.toArray.length > 1 ? ema.toArray[ema.toArray.length - 2].toFixed(3) : `loading...` }</strong>
+            <br />
+            <small>Last trade price:</small> <strong id="last-price">loading...</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div id="chart-advanced"></div>
+
+      <!-- Actions -->
+      <div class="row my-4">
+        <div class="col-12 col-md-6">
+          <!-- BUY -->
+          <ul class="nav nav-tabs" id="buyTabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="buy-market-tab" data-toggle="tab" href="#buymarket" role="tab" aria-controls="buymarket" aria-selected="true">Market</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="buy-limit-tab" data-toggle="tab" href="#buylimit" role="tab" aria-controls="buylimit" aria-selected="false">Limit</a>
+            </li>
+          </ul>
+          <div class="tab-content" id="buyTabContent">
+            <!-- BUY MARKET -->
+            <div class="tab-pane fade show active" id="buymarket" role="tabpanel" aria-labelledby="buy-market-tab">
+              <div class="row py-3">
+                <div class="col-9">
+                  <form id="formBuyMarket" class="form-inline">
+                    <label class="w-25">Amount</label>
+                    <input name="quantity" type="text" class="form-control w-75">
+                    <input type="hidden" name="side" value="buy">
+                    <input type="hidden" name="type" value="market">
+                  </form>
+                </div>
+                <div class="col-3">
+                  <button id="btnBuyMarket" class="btn btn-success">Buy Market</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- BUY LIMIT -->
+            <div class="tab-pane fade" id="buylimit" role="tabpanel" aria-labelledby="buy-limit-tab">
+              <div class="py-3">
+                <form id="formBuyLimit" action="">
+                  <div class="row">
+                    <div class="col-6 form-inline">
+                      <label class="w-25">Amount</label>
+                      <input name="quantity" class="form-control w-75" value="0">
+                    </div>
+                    <div class="col-6 form-inline">
+                      <label class="w-25">Price</label>
+                      <input class="form-control w-75" name="price" value="0">
+                    </div>
+                  </div>
+                  <input type="hidden" name="side" value="buy">
+                  <input type="hidden" name="type" value="limit">
+                </form>
+                <button id="btnBuyLimit" class="float-right px-5 mt-2 btn btn-success">Buy Limit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <!-- SELL -->
+          <ul class="nav nav-tabs" id="sellTabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="sell-market-tab" data-toggle="tab" href="#sellmarket" role="tab" aria-controls="sellmarket" aria-selected="true">Market</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="sell-limit-tab" data-toggle="tab" href="#selllimit" role="tab" aria-controls="selllimit" aria-selected="false">Limit</a>
+            </li>
+          </ul>
+          <div class="tab-content" id="sellTabContent">
+            <!-- SELL MARKET -->
+            <div class="tab-pane fade show active" id="sellmarket" role="tabpanel" aria-labelledby="sell-market-tab">
+              <div class="row py-3">
+                <div class="col-9">
+                  <form id="formSellMarket" class="form-inline">
+                    <label class="w-25">Amount</label>
+                    <input name="quantity" type="text" class="form-control w-75">
+                    <input type="hidden" name="side" value="sell">
+                    <input type="hidden" name="type" value="market">
+                  </form>
+                </div>
+                <div class="col-3">
+                  <button id="btnSellMarket" class="btn btn-success">Sell Market</button>
+                </div>
+              </div>
+            </div>
+            <!-- SELL LIMIT -->
+            <div class="tab-pane fade" id="selllimit" role="tabpanel" aria-labelledby="sell-limit-tab">
+              <div class="py-3">
+                <form id="formSellLimit" action="">
+                  <div class="row">
+                    <div class="col-6 form-inline">
+                      <label class="w-25">Amount</label>
+                      <input name="quantity" class="form-control w-75"  value="0">
+                    </div>
+                    <div class="col-6 form-inline">
+                      <label class="w-25">Price</label>
+                      <input name="price" class="form-control w-75"  value="0">
+                    </div>
+                  </div>
+                  <input type="hidden" name="side" value="sell">
+                  <input type="hidden" name="type" value="limit">
+                </form>
+                <button id="btnSellLimit" class="float-right px-5 mt-2 btn btn-success">Sell Limit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <footer>
+      <!-- Footer here -->
+    </footer>
+    <script src="/scripts/charts/chop-chart.js"></script>
+  </body>
+</html>

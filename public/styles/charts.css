@@ -1,0 +1,206 @@
+#chart-advanced{
+  text-align: center;
+  padding: 20px 0;
+  background: rgba(68, 97, 115, 0.48)
+}
+#chart-advanced svg{
+  background: #1c3a4a;
+}
+
+#chart-advanced text {
+    fill: #fff;
+}
+
+text.symbol {
+    fill: #222;
+}
+
+path {
+    fill: none;
+    stroke-width: 1;
+}
+
+path.candle {
+    stroke: #446173;
+}
+
+path.candle.body {
+    stroke-width: 0;
+}
+
+path.candle.up {
+    stroke: #1cb477;
+    stroke-width: 1;
+    fill: rgba(28, 180, 119, 0.3);
+}
+
+path.candle.down {
+    stroke: #c3484b;
+    stroke-width: 1;
+    fill: rgba(195, 72, 75, 0.3);
+}
+
+.close.annotation.up path {
+    fill: #1cb477;
+}
+
+path.volume {
+    stroke: #446173;
+    stroke-width: 1;
+    fill: rgba(68, 97, 115, 0.3);
+}
+
+.indicator-plot path.line {
+    fill: none;
+    stroke-width: 1;
+}
+
+.ma-0 path.line {
+    stroke: #ed8564;
+}
+
+.ma-1 path.line {
+    stroke: #8a4feb;
+}
+
+.ma-2 path.line {
+    stroke: #ff0000;
+}
+
+path.macd {
+    stroke: #0000AA;
+}
+
+path.signal {
+    stroke: #FF9999;
+}
+
+path.zero {
+    stroke: #BBBBBB;
+    stroke-dasharray: 0;
+    stroke-opacity: 0.5;
+}
+
+path.difference {
+    fill: #BBBBBB;
+    opacity: 0.5;
+}
+
+path.rsi {
+    stroke: #446173;
+}
+
+path.overbought, path.oversold {
+    stroke: #FF9999;
+    stroke-dasharray: 5, 5;
+}
+
+path.middle, path.zero {
+    stroke: #BBBBBB;
+    stroke-dasharray: 5, 5;
+}
+
+.analysis path, .analysis circle {
+    stroke: blue;
+    stroke-width: 0.8;
+}
+
+.trendline circle {
+    stroke-width: 0;
+    display: none;
+}
+
+.mouseover .trendline path {
+    stroke-width: 1.2;
+}
+
+.mouseover .trendline circle {
+    stroke-width: 1;
+    display: inline;
+}
+
+.dragging .trendline path, .dragging .trendline circle {
+    stroke: darkblue;
+}
+
+.interaction path, .interaction circle {
+    pointer-events: all;
+}
+
+.interaction .body {
+    cursor: move;
+}
+
+.trendlines .interaction .start, .trendlines .interaction .end {
+    cursor: nwse-resize;
+}
+
+.supstance path {
+    stroke-dasharray: 2, 2;
+}
+
+.supstances .interaction path {
+    pointer-events: all;
+    cursor: ns-resize;
+}
+
+.mouseover .supstance path {
+    stroke-width: 1.5;
+}
+
+.dragging .supstance path {
+    stroke: darkblue;
+}
+
+.crosshair {
+    cursor: crosshair;
+}
+
+.crosshair path.wire {
+    stroke: #9b9235;
+    stroke-dasharray: 1, 1;
+}
+
+.crosshair .axisannotation path {
+    fill: #9b9235;
+}
+
+.tradearrow path.tradearrow {
+    stroke: none;
+}
+
+.tradearrow path.buy {
+    fill: #0000FF;
+}
+
+.tradearrow path.sell {
+    fill: #9900FF;
+}
+
+.domain{
+  stroke: #698190;
+}
+.tick line{
+  stroke: #698190;
+}
+
+.grid .tick line{
+  stroke: rgba(105, 129, 144, 0.3);
+}
+
+.grid .tick:nth-child(2) line{
+  stroke: #698190;
+}
+
+.tradearrow path.highlight {
+    fill: none;
+    stroke-width: 2;
+}
+
+.tradearrow path.highlight.buy {
+    stroke: #0000FF;
+}
+
+.tradearrow path.highlight.sell {
+    stroke: #9900FF;
+}
